@@ -5,6 +5,7 @@ A calm daily focus journal. Set one intention, run focus timers, tick off a shor
 - **Intention + tasks** for today, with a streak that counts days where you focused or finished something.
 - **Focus timer** (15 / 25 / 50 min) with a sweeping ring and a small celebration when a session is logged.
 - **Animated d3 visuals:** a 7-day bar chart with trend line, and a 12-week activity heatmap. Respects `prefers-reduced-motion`.
+- **Daily focus goal** with a progress bar, **carry-over** of yesterday's unfinished tasks, a **weekly review** in plain language, and a **Space** shortcut plus a soft chime for the timer.
 - **Light and dark themes**, mobile friendly.
 - **Your data, two ways:**
   - *Static mode:* stays in your browser's local storage. Works on GitHub Pages or any file host. Export and import as JSON.
