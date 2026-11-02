@@ -77,3 +77,16 @@ h1 { background: linear-gradient(90deg, var(--ink), var(--accent)); -webkit-back
 
 #task-form { flex-wrap: nowrap; } #task-form input { flex: 1; min-width: 0; }
 .dial svg { overflow: visible; }
+
+.goal-track { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.goal-fill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.goal-fill.met { background: var(--good); }
+.goal { display: grid; gap: 6px; }
+#goal { width: 64px; font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 1px 6px; }
+kbd { font: inherit; font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; }
+#carry { margin-top: 10px; }
+@media (hover: none) { .kbd { display: none; } }
+@media (prefers-reduced-motion: reduce) { .goal-fill { transition: none; } }
+
+.review { margin: 10px 0 0; padding-left: 18px; color: var(--ink); font-size: 14px; }
+.review li { margin: 2px 0; }
