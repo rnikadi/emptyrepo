@@ -21,7 +21,7 @@ export function addDays(key, n) {
 }
 
 export function emptyState() {
-  return { version: 1, days: {} };
+  return { version: 1, goal: 120, days: {} };
 }
 
 export function getDay(state, key) {
@@ -100,6 +100,43 @@ export function weekSummary(state, todayKey) {
   };
 }
 
+export function setGoal(state, minutes) {
+  const n = Math.round(Number(minutes));
+  if (!Number.isFinite(n) || n <= 0) return state; // ignore junk input
+  return { ...state, goal: Math.min(1440, Math.max(5, n)) };
+}
+
+// Unfinished tasks from the most recent earlier day (within 7 days) that are not already on `key`.
+export function carryable(state, key) {
+  const have = new Set(getDay(state, key).tasks.map((t) => t.text.toLowerCase()));
+  for (let i = 1; i <= 7; i++) {
+    const prev = state.days[addDays(key, -i)];
+    const open = prev ? prev.tasks.filter((t) => !t.done && !have.has(t.text.toLowerCase())) : [];
+    if (open.length) return open;
+  }
+  return [];
+}
+
+export function carryOver(state, key) {
+  let next = state;
+  carryable(state, key).forEach((t, i) => { next = addTask(next, key, t.text, `c${Date.now()}${i}`); });
+  return next;
+}
+
+// Plain-language review of the last 7 days.
+export function weeklyReview(state, todayKey) {
+  const w = weekSummary(state, todayKey);
+  const best = w.days.reduce((b, d) => (d.minutes > b.minutes ? d : b), w.days[0]);
+  const prev = weekSummary(state, addDays(todayKey, -7));
+  const delta = w.minutes - prev.minutes;
+  const lines = [];
+  if (w.minutes === 0 && w.done === 0) return ["Nothing logged this week yet. One short session is a good start."];
+  lines.push(`You focused ${w.minutes} min and finished ${w.done} task${w.done === 1 ? "" : "s"}, active on ${w.activeDays} of 7 days.`);
+  if (best.minutes > 0) lines.push(`Best day: ${best.key} with ${best.minutes} min.`);
+  if (prev.minutes > 0) lines.push(delta >= 0 ? `Up ${delta} min on the week before.` : `Down ${-delta} min on the week before.`);
+  return lines;
+}
+
 export function exportJSON(state) {
   return JSON.stringify(state, null, 2);
 }
@@ -112,6 +149,7 @@ export function importJSON(text) {
     throw new Error("That file is not a Focus Journal export.");
   }
   const out = emptyState();
+  if (Number.isFinite(raw.goal)) out.goal = setGoal(out, raw.goal).goal;
   for (const [key, d] of Object.entries(raw.days)) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !d || typeof d !== "object") continue;
     out.days[key] = {

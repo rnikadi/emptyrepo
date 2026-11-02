@@ -62,3 +62,32 @@ test("import rejects junk and sanitises bad entries", () => {
   assert.equal(s.days[T].focusMinutes, 0);
   assert.equal(s.days[T].tasks.length, 1);
 });
+
+test("goal is clamped and survives export/import", () => {
+  assert.equal(S.setGoal(S.emptyState(), 90).goal, 90);
+  assert.equal(S.setGoal(S.emptyState(), 99999).goal, 1440);
+  assert.equal(S.setGoal(S.emptyState(), "abc").goal, 120);
+  assert.equal(S.importJSON(S.exportJSON(S.setGoal(S.emptyState(), 45))).goal, 45);
+});
+
+test("carryOver copies only unfinished, non-duplicate tasks from the latest earlier day", () => {
+  let s = S.addTask(S.emptyState(), "2026-03-08", "old open", "1");
+  s = S.addTask(s, "2026-03-08", "done one", "2");
+  s = S.toggleTask(s, "2026-03-08", "2");
+  s = S.addTask(s, T, "Old Open", "x"); // already present, case-insensitive
+  s = S.addTask(s, "2026-03-08", "second open", "3");
+  assert.deepEqual(S.carryable(s, T).map((t) => t.text), ["second open"]);
+  s = S.carryOver(s, T);
+  assert.deepEqual(S.getDay(s, T).tasks.map((t) => t.text), ["Old Open", "second open"]);
+  assert.equal(S.carryable(s, T).length, 0);
+});
+
+test("weeklyReview describes the week and compares with the previous one", () => {
+  assert.equal(S.weeklyReview(S.emptyState(), T).length, 1);
+  let s = S.addFocus(S.emptyState(), "2026-03-09", 40);
+  s = S.addFocus(s, "2026-03-02", 30); // previous week
+  const lines = S.weeklyReview(s, T);
+  assert.match(lines[0], /40 min/);
+  assert.match(lines[1], /2026-03-09/);
+  assert.match(lines[2], /Up 10 min/);
+});

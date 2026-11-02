@@ -44,7 +44,12 @@
           <button class="btn primary" id="start">Start focus</button>
           <button class="btn" id="reset">Reset</button>
         </div>
-        <p class="hint" id="today-minutes">0 min focused today</p>
+        <div class="goal">
+          <div class="goal-track"><div class="goal-fill" id="goal-fill"></div></div>
+          <p class="hint"><span id="today-minutes">0 min focused today</span> · goal
+            <input id="goal" type="number" min="5" max="1440" step="5" aria-label="Daily focus goal in minutes"> min</p>
+        </div>
+        <p class="hint kbd">Press <kbd>Space</kbd> to start or pause.</p>
       </div>
     </section>
 
@@ -55,13 +60,14 @@
         <button class="btn" type="submit">Add</button>
       </form>
       <ul id="tasks" class="tasks"></ul>
+      <button class="btn small" id="carry" hidden></button>
       <p class="hint empty" id="tasks-empty">No tasks yet. Keep the list short.</p>
     </section>
 
     <section class="card">
       <h2 class="label">Last 7 days</h2>
       <div class="chart" id="week"></div>
-      <p class="hint" id="week-summary"></p>
+      <ul class="review" id="review"></ul>
     </section>
 
     <section class="card">

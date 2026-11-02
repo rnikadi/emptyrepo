@@ -41,7 +41,7 @@ export function drawWeek(el, days, todayKey) {
     .attr("y", (d) => (d.minutes ? y(d.minutes) : h - m.b - 5))
     .attr("height", (d) => (d.minutes ? h - m.b - y(d.minutes) : 5));
 
-  const line = d3.line().curve(d3.curveCatmullRom).x((d) => x(d.key) + x.bandwidth() / 2).y((d) => y(d.minutes));
+  const line = d3.line().curve(d3.curveMonotoneX).x((d) => x(d.key) + x.bandwidth() / 2).y((d) => y(d.minutes));
   const path = svg.append("path").datum(days).attr("d", line).attr("fill", "none")
     .attr("stroke", css("--ink")).attr("stroke-opacity", 0.35).attr("stroke-width", 2);
   const len = path.node().getTotalLength();

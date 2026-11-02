@@ -54,6 +54,13 @@ function render() {
   document.querySelector(".streak").classList.toggle("hot", st >= 3);
   if (document.activeElement !== $("intention")) $("intention").value = day.intention;
   $("today-minutes").textContent = `${day.focusMinutes} min focused today`;
+  if (document.activeElement !== $("goal")) $("goal").value = state.goal;
+  const pct = Math.min(100, Math.round((day.focusMinutes / state.goal) * 100));
+  $("goal-fill").style.width = pct + "%";
+  $("goal-fill").classList.toggle("met", pct >= 100);
+  const carry = S.carryable(state, today);
+  $("carry").hidden = carry.length === 0;
+  $("carry").textContent = `Carry over ${carry.length} unfinished task${carry.length === 1 ? "" : "s"}`;
 
   const ul = $("tasks");
   ul.replaceChildren(...day.tasks.map((t) => {
@@ -74,8 +81,23 @@ function render() {
 
   const w = S.weekSummary(state, today);
   if (V.hasD3()) { V.drawWeek($("week"), w.days, today); V.drawHeat($("heat"), state, today); }
-  $("week-summary").textContent = `${w.minutes} min focused, ${w.done} tasks done, active ${w.activeDays} of 7 days.`;
+  $("review").replaceChildren(...S.weeklyReview(state, today).map((l) => Object.assign(document.createElement("li"), { textContent: l })));
   renderTimer();
+}
+
+// Soft two-note chime generated with Web Audio (no audio files needed).
+function chime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [660, 880].forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = f; o.connect(g); g.connect(ctx.destination);
+      const t = ctx.currentTime + i * 0.18;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.15, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      o.start(t); o.stop(t + 0.65);
+    });
+    setTimeout(() => ctx.close(), 1500);
+  } catch {}
 }
 
 function finish() {
@@ -86,6 +108,7 @@ function finish() {
   say(`Nice work. ${minutes} minutes logged.`);
   V.pulse(document.querySelector(".dial")); V.burst(document.querySelector(".dial"));
   try { if (navigator.vibrate) navigator.vibrate(200); } catch {}
+  chime();
 }
 
 function onTick() {
@@ -107,6 +130,13 @@ document.querySelectorAll(".chip").forEach((c) => (c.onclick = () => {
 }));
 
 $("intention").oninput = (e) => persist(S.setIntention(state, today, e.target.value));
+$("goal").onchange = (e) => commit(S.setGoal(state, e.target.value));
+$("carry").onclick = () => commit(S.carryOver(state, today));
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !e.repeat && !/^(INPUT|TEXTAREA|BUTTON|SELECT)$/.test(document.activeElement.tagName)) {
+    e.preventDefault(); $("start").click();
+  }
+});
 $("task-form").onsubmit = (e) => {
   e.preventDefault();
   commit(S.addTask(state, today, $("task-input").value));
